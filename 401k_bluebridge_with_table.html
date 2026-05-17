@@ -1,0 +1,350 @@
+
+<style>
+:root{--bb-bg:rgb(32,17,62);--bb-card:rgba(255,255,255,0.07);--bb-border:rgba(255,255,255,0.13);--bb-muted:rgba(255,255,255,0.6);--bb-input-bg:rgba(255,255,255,0.09);--bb-input-border:rgba(255,255,255,0.22);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body,html{background:var(--bb-bg);color:#fff;font-family:inherit;}
+.wrap{background:var(--bb-bg);min-height:100vh;padding:1.25rem 1.5rem 2rem;}
+.brand-block{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--bb-border);}
+.brand-title{font-size:26px;font-weight:700;color:#fff;line-height:1.2;}
+.brand-sub{font-size:13px;color:rgba(255,255,255,0.7);margin-top:3px;}
+.brand-logo{width:60px;height:60px;border-radius:10px;object-fit:cover;}
+.mode-btn{padding:6px 14px;font-size:13px;border-radius:6px;cursor:pointer;border:1px solid var(--bb-border);background:transparent;color:var(--bb-muted);}
+.mode-btn.active{background:rgba(126,184,247,0.18);color:#7EB8F7;border-color:#7EB8F7;font-weight:500;}
+.mc{background:var(--bb-card);border:1px solid var(--bb-border);border-radius:8px;padding:.85rem 1rem;}
+.ml{font-size:12px;color:var(--bb-muted);margin-bottom:3px;}
+.mv{font-size:17px;font-weight:500;color:#fff;}
+.mv.pos{color:#4CD9A0;}.mv.neg{color:#FF7B7B;}
+.fr{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.flbl{font-size:13px;color:var(--bb-muted);width:160px;flex-shrink:0;}
+.fi{width:120px;padding:5px 9px;font-size:13px;border:1px solid var(--bb-input-border);border-radius:6px;background:var(--bb-input-bg);color:#fff;}
+.fi:focus{outline:none;border-color:#7EB8F7;}
+.fi.narrow{width:80px;}
+.sl{font-size:11px;font-weight:600;color:var(--bb-muted);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.5px;}
+hr.div{border:none;border-top:1px solid var(--bb-border);margin:14px 0;}
+.ferr{font-size:11px;color:#FF7B7B;margin:-6px 0 6px 170px;display:none;}
+.tag{font-size:11px;padding:2px 7px;border-radius:4px;font-weight:500;background:rgba(76,217,160,0.15);color:#4CD9A0;}
+.action-btn{padding:6px 14px;font-size:12px;border-radius:6px;cursor:pointer;border:1px solid var(--bb-border);background:rgba(255,255,255,0.05);color:var(--bb-muted);}
+
+/* Table styles */
+.table-section{margin-top:2rem;border-top:1px solid var(--bb-border);padding-top:1.5rem;}
+.table-title{font-size:14px;font-weight:600;color:rgba(255,255,255,0.85);margin-bottom:1rem;letter-spacing:0.3px;}
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--bb-border);}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead tr{background:rgba(126,184,247,0.12);}
+thead th{padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#7EB8F7;letter-spacing:0.4px;text-transform:uppercase;white-space:nowrap;border-bottom:1px solid var(--bb-border);}
+tbody tr{border-bottom:0.5px solid rgba(255,255,255,0.06);}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(255,255,255,0.04);}
+tbody tr.phase-withdraw{background:rgba(216,90,48,0.06);}
+tbody tr.phase-withdraw:hover{background:rgba(216,90,48,0.12);}
+tbody td{padding:8px 12px;color:rgba(255,255,255,0.85);white-space:nowrap;vertical-align:top;}
+td.pos{color:#4CD9A0;}
+td.neg{color:#FF7B7B;}
+td.year-col{font-weight:600;color:#fff;}
+td.events-col{white-space:normal;min-width:180px;color:rgba(255,255,255,0.65);font-size:11px;line-height:1.4;}
+.event-badge{display:inline-block;background:rgba(255,153,51,0.18);border:0.5px solid rgba(255,180,80,0.4);color:#FFD080;border-radius:3px;padding:1px 5px;font-size:10px;margin:1px 2px 1px 0;white-space:nowrap;}
+.event-badge.high{background:rgba(200,50,50,0.2);border-color:rgba(255,120,120,0.4);color:#FF9999;}
+.retire-row td{background:rgba(76,217,160,0.08);border-top:1px solid rgba(76,217,160,0.3);border-bottom:1px solid rgba(76,217,160,0.3);}
+</style>
+
+<div class="wrap">
+  <div class="brand-block">
+    <div>
+      <div class="brand-title">Bluebridge Financial</div>
+      <div class="brand-sub">Retirement Calculator with Historical Scenarios</div>
+    </div>
+    <img class="brand-logo" id="logoImg" alt="Bluebridge logo">
+  </div>
+
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem;">
+    <button class="mode-btn active" id="btn-manual" onclick="setMode('manual')">Manual return</button>
+    <button class="mode-btn" id="btn-hist" onclick="setMode('historical')">Historical stress test</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-bottom:1.5rem;">
+    <div class="mc"><p class="ml">Balance at retirement</p><p class="mv" id="retireVal">—</p></div>
+    <div class="mc"><p class="ml">Total contributions</p><p class="mv" id="totalContrib">—</p></div>
+    <div class="mc"><p class="ml">Investment gains</p><p class="mv" id="totalGains">—</p></div>
+    <div class="mc"><p class="ml">Annual withdrawal</p><p class="mv" id="annualWithdraw">—</p></div>
+    <div class="mc"><p class="ml">Balance at death age</p><p class="mv" id="endBalance">—</p></div>
+    <div class="mc"><p class="ml">Accum avg / std dev</p><p class="mv" id="returnStats">—</p></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:290px 1fr;gap:1.5rem;margin-bottom:1.5rem;align-items:start;">
+    <div>
+      <p class="sl">Identity</p>
+      <div class="fr"><label class="flbl">Current age</label><input class="fi narrow" type="number" id="age" value="35" min="18" max="80"></div>
+      <div class="fr"><label class="flbl">Retirement age</label><input class="fi narrow" type="number" id="retireAge" value="65" min="40" max="85"></div>
+      <div class="fr"><label class="flbl">Plan-to-age (death)</label><input class="fi narrow" type="number" id="deathAge" value="90" min="60" max="110"></div>
+      <hr class="div">
+      <p class="sl">Accumulation phase</p>
+      <div class="fr"><label class="flbl">Annual contribution ($)</label><input class="fi" type="number" id="k401" value="10000" min="0" max="30000" step="500"></div>
+      <div class="fr"><label class="flbl">Starting balance ($)</label><input class="fi" type="number" id="startBal" value="0" min="0" max="10000000" step="1000"></div>
+      <div id="manual-controls">
+        <div class="fr"><label class="flbl">Annual return (%)</label><input class="fi narrow" type="number" id="r401" value="7" min="0.1" max="20" step="0.5"></div>
+      </div>
+      <div id="hist-controls" style="display:none;">
+        <div class="fr"><label class="flbl">Start year</label><input class="fi narrow" type="number" id="startYear" value="1990" min="1924" max="2024"></div>
+        <div id="err-start" class="ferr">Must be 1924–2024</div>
+        <div class="fr"><label class="flbl">End year</label><input class="fi narrow" type="number" id="endYear" value="2025" min="1925" max="2025"></div>
+        <div id="err-end" class="ferr">Must be after start, max 2025</div>
+        <p style="font-size:12px;color:var(--bb-muted);margin:2px 0 6px;line-height:1.5;" id="hist-note"></p>
+      </div>
+      <hr class="div">
+      <p class="sl">Withdrawal phase</p>
+      <div class="fr"><label class="flbl">Withdrawal rate (%)</label><input class="fi narrow" type="number" id="withdrawPct" value="4" min="0.1" max="20" step="0.1"></div>
+      <div class="fr"><label class="flbl">Retire year (for returns)</label><input class="fi narrow" type="number" id="retireYear" value="2025" min="1924" max="2025"></div>
+      <p style="font-size:12px;color:var(--bb-muted);margin:-4px 0 0;line-height:1.6;">Withdrawal = % of retirement balance annually.<br><span class="tag">S&P 500 actual returns</span> applied in withdrawal phase.</p>
+    </div>
+    <div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--bb-muted);"><span style="width:10px;height:10px;border-radius:2px;background:#7EB8F7;display:inline-block;"></span>Accumulation</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--bb-muted);"><span style="width:10px;height:10px;border-radius:2px;background:#D85A30;display:inline-block;"></span>Withdrawal</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--bb-muted);"><span style="width:14px;height:2px;border-top:2px dashed rgba(126,184,247,0.6);display:inline-block;"></span>Contributions</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--bb-muted);"><span style="width:14px;height:2px;border-top:2px dashed rgba(99,200,80,0.8);display:inline-block;"></span>Age (right axis)</span>
+      </div>
+      <div style="position:relative;width:100%;height:400px;"><canvas id="growthChart"></canvas></div>
+      <div style="margin-top:1.25rem;">
+        <p style="font-size:12px;color:var(--bb-muted);margin:0 0 5px;">S&P 500 returns — <span style="color:#4CD9A0;">green</span> positive, <span style="color:#FF7B7B;">red</span> negative</p>
+        <div style="position:relative;width:100%;height:120px;"><canvas id="returnsBar"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="border-top:1px solid var(--bb-border);padding-top:1rem;display:flex;gap:12px;flex-wrap:wrap;margin-bottom:1rem;">
+    <button class="action-btn" onclick="sendPrompt('What is the safest withdrawal rate given sequence-of-returns risk in retirement?')">Sequence-of-returns risk ↗</button>
+    <button class="action-btn" onclick="sendPrompt('Model Social Security income layered on top of my 401K withdrawal')">Add Social Security ↗</button>
+    <button class="action-btn" onclick="sendPrompt('Add a Roth IRA comparison alongside the 401K calculator')">Add Roth IRA ↗</button>
+  </div>
+
+  <!-- Year-by-year table -->
+  <div class="table-section">
+    <p class="table-title">📊 Year-by-Year Breakdown</p>
+    <div class="table-wrap">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Age</th>
+            <th>Starting $</th>
+            <th>Gain/Loss %</th>
+            <th>Gain/Loss $</th>
+            <th>Withdrawal %</th>
+            <th>Withdrawal $</th>
+            <th>Ending $</th>
+            <th>Events</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
+<script>
+// Logo
+document.getElementById('logoImg').src='data:image/png;base64,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';
+
+const SP500={1924:0.1871,1925:0.2256,1926:0.1162,1927:0.3749,1928:0.4361,1929:-0.0842,1930:-0.249,1931:-0.4334,1932:-0.0819,1933:0.5399,1934:-0.0144,1935:0.4767,1936:0.3392,1937:-0.3503,1938:0.3112,1939:-0.0041,1940:-0.0978,1941:-0.1159,1942:0.2034,1943:0.259,1944:0.1975,1945:0.3644,1946:-0.0807,1947:0.0571,1948:0.055,1949:0.1879,1950:0.3171,1951:0.2402,1952:0.1837,1953:-0.0099,1954:0.5262,1955:0.3156,1956:0.0656,1957:-0.1078,1958:0.4336,1959:0.1196,1960:0.0047,1961:0.2689,1962:-0.0873,1963:0.228,1964:0.1648,1965:0.1245,1966:-0.1006,1967:0.2398,1968:0.1106,1969:-0.085,1970:0.0401,1971:0.1431,1972:0.1898,1973:-0.1466,1974:-0.2647,1975:0.372,1976:0.2384,1977:-0.0718,1978:0.0656,1979:0.1844,1980:0.3242,1981:-0.0491,1982:0.2141,1983:0.2251,1984:0.0627,1985:0.3173,1986:0.1867,1987:0.0525,1988:0.1661,1989:0.3169,1990:-0.031,1991:0.3047,1992:0.0762,1993:0.1008,1994:0.0132,1995:0.3758,1996:0.2296,1997:0.3336,1998:0.2858,1999:0.2104,2000:-0.091,2001:-0.1189,2002:-0.221,2003:0.2868,2004:0.1088,2005:0.0491,2006:0.1579,2007:0.0549,2008:-0.37,2009:0.2646,2010:0.1506,2011:0.0211,2012:0.16,2013:0.3239,2014:0.1369,2015:0.0138,2016:0.1196,2017:0.2183,2018:-0.0438,2019:0.3149,2020:0.184,2021:0.2871,2022:-0.1811,2023:0.2423,2024:0.25,2025:0.179};
+const SP500_YEARS=Object.keys(SP500).map(Number).sort((a,b)=>a-b);
+const SP500_VALS=SP500_YEARS.map(y=>SP500[y]);
+
+const EVENTS_MAP={
+  1929:[{label:"Great Depression begins",sev:"high"}],
+  1930:[{label:"Depression deepens",sev:"high"}],
+  1931:[{label:"Bank failures peak",sev:"high"}],
+  1932:[{label:"Depression trough",sev:"high"}],
+  1937:[{label:"Recession of 1937–38",sev:"high"}],
+  1939:[{label:"WWII begins in Europe",sev:"med"}],
+  1941:[{label:"US enters WWII",sev:"med"}],
+  1945:[{label:"WWII ends",sev:"med"}],
+  1950:[{label:"Korean War begins",sev:"med"}],
+  1957:[{label:"Eisenhower Recession",sev:"med"}],
+  1960:[{label:"Kennedy Recession",sev:"med"}],
+  1962:[{label:"Cuban Missile Crisis",sev:"high"}],
+  1966:[{label:"Vietnam War escalation",sev:"med"}],
+  1969:[{label:"Nixon takes office; stagflation",sev:"med"}],
+  1970:[{label:"Economic slowdown",sev:"med"}],
+  1973:[{label:"Oil Embargo; energy crisis",sev:"high"}],
+  1974:[{label:"Nixon resigns; bear market",sev:"high"}],
+  1975:[{label:"Recession ends; recovery",sev:"med"}],
+  1979:[{label:"Second oil crisis",sev:"med"}],
+  1980:[{label:"Volcker rate hikes; recession",sev:"high"}],
+  1981:[{label:"Double-dip recession",sev:"med"}],
+  1982:[{label:"Recession ends; bull market",sev:"med"}],
+  1987:[{label:"Black Monday — Oct 19 crash",sev:"high"}],
+  1989:[{label:"S&L Crisis peaks",sev:"med"}],
+  1990:[{label:"Gulf War; S&L Crisis",sev:"high"}],
+  1991:[{label:"Gulf War ends; recovery",sev:"med"}],
+  1994:[{label:"Fed rate hikes; bond crash",sev:"med"}],
+  1997:[{label:"Asian financial crisis",sev:"med"}],
+  1998:[{label:"LTCM collapse; Russia default",sev:"med"}],
+  2000:[{label:"Dot-com bubble bursts",sev:"high"}],
+  2001:[{label:"9/11 attacks; recession",sev:"high"}],
+  2002:[{label:"Enron/WorldCom scandals",sev:"high"}],
+  2003:[{label:"Iraq War begins",sev:"med"}],
+  2007:[{label:"Subprime mortgage crisis begins",sev:"high"}],
+  2008:[{label:"Great Financial Crisis",sev:"high"}],
+  2009:[{label:"Market bottoms; TARP recovery",sev:"med"}],
+  2010:[{label:"Flash Crash (May); EU debt crisis",sev:"med"}],
+  2011:[{label:"US debt ceiling crisis; downgrade",sev:"med"}],
+  2015:[{label:"China slowdown; commodity crash",sev:"med"}],
+  2016:[{label:"Brexit vote; Trump election",sev:"med"}],
+  2018:[{label:"Trade war tariffs; Fed rate hikes",sev:"med"}],
+  2020:[{label:"COVID-19 pandemic; crash & recovery",sev:"high"}],
+  2022:[{label:"Fed rate hike cycle; inflation surge",sev:"high"}],
+  2023:[{label:"Banking crisis (SVB); AI boom",sev:"med"}],
+  2025:[{label:"Tariff shock; market volatility",sev:"med"}],
+};
+
+const CHART_EVENTS=[{year:1929,label:"Great Depression",sev:"high"},{year:1937,label:"1937 Recession",sev:"med"},{year:1941,label:"WWII Entry",sev:"med"},{year:1962,label:"Cuban Missile Crisis",sev:"med"},{year:1969,label:"Nixon/Stagflation",sev:"med"},{year:1973,label:"Oil Embargo",sev:"high"},{year:1974,label:"Bear Mkt/Watergate",sev:"high"},{year:1980,label:"Volcker Rate Hikes",sev:"med"},{year:1987,label:"Black Monday",sev:"high"},{year:1990,label:"Gulf War/S&L",sev:"med"},{year:2000,label:"Dot-com Bubble",sev:"high"},{year:2001,label:"9/11 Attacks",sev:"high"},{year:2002,label:"Enron/Bear Mkt",sev:"med"},{year:2008,label:"Great Financial Crisis",sev:"high"},{year:2011,label:"Debt Ceiling",sev:"med"},{year:2018,label:"Trade War/Rate Hikes",sev:"med"},{year:2020,label:"COVID-19",sev:"high"},{year:2022,label:"Rate Hike Cycle",sev:"med"}];
+
+function getHistReturn(year){const idx=SP500_YEARS.indexOf(year);if(idx>=0)return SP500_VALS[idx];return SP500_VALS[((year-1924)%SP500_YEARS.length+SP500_YEARS.length)%SP500_YEARS.length];}
+let mode='manual',growthChart,returnsChart;
+const fmt=v=>v<0?'-$'+Math.round(Math.abs(v)).toLocaleString():'$'+Math.round(v).toLocaleString();
+const fmtPct=v=>(v*100).toFixed(1)+'%';
+function stdDev(arr){if(arr.length<2)return 0;const m=arr.reduce((a,b)=>a+b,0)/arr.length;return Math.sqrt(arr.reduce((s,x)=>s+(x-m)**2,0)/(arr.length-1));}
+function getVal(id){return parseFloat(document.getElementById(id).value)||0;}
+function setMode(m){mode=m;document.getElementById('btn-manual').classList.toggle('active',m==='manual');document.getElementById('btn-hist').classList.toggle('active',m==='historical');document.getElementById('manual-controls').style.display=m==='manual'?'':'none';document.getElementById('hist-controls').style.display=m==='historical'?'':'none';compute();}
+function validate(){if(mode==='historical'){const sy=getVal('startYear'),ey=getVal('endYear');document.getElementById('err-start').style.display=(sy<1924||sy>2024)?'block':'none';document.getElementById('err-end').style.display=(ey<=sy||ey>2025)?'block':'none';if(sy<1924||sy>2024||ey<=sy||ey>2025)return false;}return true;}
+function buildAnnotations(yearLabels){const annotations={};CHART_EVENTS.forEach((ev,i)=>{const idx=yearLabels.indexOf(ev.year);if(idx===-1)return;const c=ev.sev==='high'?'#FF9999':'#FFD080';const bg=ev.sev==='high'?'rgba(160,30,30,0.6)':'rgba(140,85,0,0.6)';annotations['ev'+i]={type:'label',xValue:idx,yValue:'max',backgroundColor:bg,borderColor:c,borderWidth:1,borderRadius:4,padding:{top:3,bottom:3,left:5,right:5},content:[String(ev.year),ev.label],font:[{size:10,weight:'600'},{size:9}],color:['#fff','#fff'],position:{x:'center',y:'start'},yAdjust:i%2===0?8:52};});return annotations;}
+
+function renderTable(rows, retireIdx, annualWithdraw, withdrawPct){
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML='';
+  rows.forEach((row,i)=>{
+    const tr=document.createElement('tr');
+    const isRetire=(i===retireIdx);
+    const isWithdraw=(i>retireIdx);
+    if(isRetire) tr.className='retire-row';
+    else if(isWithdraw) tr.className='phase-withdraw';
+
+    const gainLossPct=row.returnRate;
+    const gainLossDol=row.gainLoss;
+    const wPct=isWithdraw?withdrawPct:0;
+    const wDol=isWithdraw?annualWithdraw:0;
+
+    // Events for this year
+    const evs=EVENTS_MAP[row.year]||[];
+    let evHtml='';
+    if(isRetire) evHtml+='<span class="event-badge" style="background:rgba(76,217,160,0.2);border-color:rgba(76,217,160,0.5);color:#4CD9A0;">🎯 Retirement year</span> ';
+    evs.forEach(e=>{evHtml+=`<span class="event-badge ${e.sev==='high'?'high':''}">${e.label}</span> `;});
+
+    const pctClass=gainLossPct>=0?'pos':'neg';
+    const dolClass=gainLossDol>=0?'pos':'neg';
+
+    tr.innerHTML=`
+      <td class="year-col">${row.year}</td>
+      <td>${row.age}</td>
+      <td>${fmt(row.startBal)}</td>
+      <td class="${pctClass}">${gainLossPct!==null?(gainLossPct*100).toFixed(1)+'%':'—'}</td>
+      <td class="${dolClass}">${gainLossDol!==null?fmt(gainLossDol):'—'}</td>
+      <td>${wPct>0?(wPct*100).toFixed(1)+'%':'—'}</td>
+      <td>${wDol>0?fmt(wDol):'—'}</td>
+      <td>${fmt(row.endBal)}</td>
+      <td class="events-col">${evHtml||'—'}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function compute(){
+  if(!validate())return;
+  const currentAge=getVal('age'),retireAge=getVal('retireAge'),deathAge=getVal('deathAge');
+  const k401=getVal('k401'),startBal=getVal('startBal');
+  const withdrawPct=getVal('withdrawPct')/100,retireYear=Math.round(getVal('retireYear'));
+  const accumYears=Math.max(0,retireAge-currentAge),withdrawYears=Math.max(0,deathAge-retireAge);
+  const yearLabels=[],balAccum=[],balWithdraw=[],contribLine=[],ageData=[],allReturnsUsed=[];
+  const tableRows=[];
+  let balance=startBal,totalContrib=0,accumReturns=[];
+
+  if(mode==='manual'){
+    const r=getVal('r401')/100,baseYear=new Date().getFullYear();
+    yearLabels.push(baseYear);balAccum.push(Math.round(balance));balWithdraw.push(null);contribLine.push(Math.round(startBal));ageData.push(currentAge);
+    for(let y=0;y<accumYears;y++){
+      const yr=baseYear+y;
+      const startB=balance+k401;
+      const gain=(startB)*r;
+      const endB=(startB)*(1+r);
+      tableRows.push({year:yr,age:currentAge+y,startBal:balance,returnRate:r,gainLoss:gain,endBal:endB});
+      balance=endB;totalContrib+=k401;accumReturns.push(r);allReturnsUsed.push({yr:yr+1,r});
+      yearLabels.push(yr+1);balAccum.push(Math.round(balance));balWithdraw.push(null);contribLine.push(Math.round(totalContrib+startBal));ageData.push(currentAge+y+1);
+    }
+    document.getElementById('returnStats').textContent=fmtPct(r)+' / 0.0%';
+  }else{
+    const sy=Math.round(getVal('startYear')),ey=Math.round(getVal('endYear'));
+    const actualAccum=Math.min(accumYears,ey-sy);
+    document.getElementById('hist-note').textContent=`${ey-sy}yr window: ${sy}–${ey}`;
+    yearLabels.push(sy);balAccum.push(Math.round(balance));balWithdraw.push(null);contribLine.push(Math.round(startBal));ageData.push(currentAge);
+    for(let y=0;y<actualAccum;y++){
+      const yr=sy+y,r=SP500[yr]!==undefined?SP500[yr]:0.10;
+      const startB=balance+k401;
+      const gain=startB*r;
+      const endB=startB*(1+r);
+      tableRows.push({year:yr,age:currentAge+y,startBal:balance,returnRate:r,gainLoss:gain,endBal:endB});
+      balance=endB;totalContrib+=k401;accumReturns.push(r);allReturnsUsed.push({yr:yr+1,r});
+      yearLabels.push(yr+1);balAccum.push(Math.round(balance));balWithdraw.push(null);contribLine.push(Math.round(totalContrib+startBal));ageData.push(currentAge+y+1);
+    }
+    document.getElementById('returnStats').textContent=fmtPct(accumReturns.reduce((a,b)=>a+b,0)/accumReturns.length)+' / '+fmtPct(stdDev(accumReturns));
+  }
+
+  const retireBalance=balance,annualWithdraw=retireBalance*withdrawPct;
+  const retireIdx=tableRows.length; // index in table rows where retirement starts
+  const retireChartIdx=yearLabels.length-1;
+  const baseXOffset=mode==='historical'?Math.round(getVal('startYear'))+Math.min(accumYears,Math.round(getVal('endYear'))-Math.round(getVal('startYear'))):new Date().getFullYear()+accumYears;
+
+  for(let y=1;y<=withdrawYears;y++){
+    const calYear=retireYear+y;
+    const r=getHistReturn(calYear);
+    allReturnsUsed.push({yr:calYear,r,isWithdraw:true});
+    const startB=balance;
+    const afterWithdraw=balance-annualWithdraw;
+    const endB=Math.max(0,afterWithdraw*(1+r));
+    const gain=afterWithdraw*r;
+    tableRows.push({year:calYear,age:retireAge+y,startBal:startB,returnRate:r,gainLoss:gain,endBal:endB});
+    balance=endB;
+    yearLabels.push(baseXOffset+y);balAccum.push(null);balWithdraw.push(Math.round(balance));contribLine.push(null);ageData.push(retireAge+y);
+  }
+  balWithdraw[retireChartIdx]=Math.round(retireBalance);
+
+  document.getElementById('retireVal').textContent=fmt(retireBalance);
+  document.getElementById('totalContrib').textContent=fmt(totalContrib+startBal);
+  document.getElementById('totalGains').textContent=fmt(retireBalance-totalContrib-startBal);
+  document.getElementById('annualWithdraw').textContent=fmt(annualWithdraw)+'/yr';
+  const finalBal=balWithdraw[balWithdraw.length-1]??0;
+  const endEl=document.getElementById('endBalance');endEl.textContent=fmt(finalBal);endEl.className='mv '+(finalBal>=0?'pos':'neg');
+  if(mode==='manual')document.getElementById('returnStats').textContent=fmtPct(getVal('r401')/100)+' / 0.0%';
+
+  renderTable(tableRows, retireIdx, annualWithdraw, withdrawPct);
+  updateCharts(yearLabels,balAccum,balWithdraw,contribLine,ageData,retireChartIdx,allReturnsUsed,currentAge,deathAge);
+}
+
+function updateCharts(yearLabels,balAccum,balWithdraw,contribLine,ageData,retireIdx,allReturnsUsed,currentAge,deathAge){
+  const ctx=document.getElementById('growthChart').getContext('2d');
+  if(growthChart)growthChart.destroy();
+  const useHist=mode==='historical';
+  const annotations=useHist?buildAnnotations(yearLabels):{};
+  annotations['retireLine']={type:'line',scaleID:'x',value:retireIdx,borderColor:'#4CD9A0',borderWidth:1.5,borderDash:[6,3],label:{display:true,content:'Retirement',position:'end',backgroundColor:'rgba(76,217,160,0.18)',color:'#4CD9A0',font:{size:10,weight:'600'},padding:{top:3,bottom:3,left:5,right:5},borderRadius:4,yAdjust:-6}};
+  const minAge=Math.floor(currentAge/5)*5,maxAge=Math.ceil((deathAge+2)/5)*5;
+  growthChart=new Chart(ctx,{type:'line',data:{labels:yearLabels,datasets:[
+    {label:'Accumulation',data:balAccum,backgroundColor:'rgba(126,184,247,0.18)',borderColor:'#7EB8F7',fill:true,tension:0.35,pointRadius:0,borderWidth:2,yAxisID:'y',spanGaps:false},
+    {label:'Withdrawal',data:balWithdraw,backgroundColor:'rgba(216,90,48,0.18)',borderColor:'#D85A30',fill:true,tension:0.35,pointRadius:0,borderWidth:2,yAxisID:'y',spanGaps:false},
+    {label:'Contributions',data:contribLine,backgroundColor:'rgba(126,184,247,0.06)',borderColor:'rgba(126,184,247,0.38)',fill:true,tension:0.2,pointRadius:0,borderWidth:1.5,borderDash:[5,4],yAxisID:'y',spanGaps:false},
+    {label:'Age',data:ageData,borderColor:'rgba(99,200,80,0.8)',backgroundColor:'transparent',fill:false,tension:0.1,pointRadius:0,borderWidth:1.5,borderDash:[2,3],yAxisID:'yAge'}]},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+  layout:{padding:{top:useHist?95:24,right:8,bottom:0,left:0}},
+  plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(32,17,62,0.95)',borderColor:'rgba(255,255,255,0.15)',borderWidth:1,titleColor:'#7EB8F7',bodyColor:'#fff',callbacks:{label:c=>{if(c.dataset.label==='Age')return' Age: '+Math.round(c.parsed.y)+' yrs';if(c.parsed.y===null)return null;return' '+c.dataset.label+': '+fmt(c.parsed.y);}}},annotation:{annotations,clip:false}},
+  scales:{x:{ticks:{font:{size:11},color:'rgba(255,255,255,0.5)',autoSkip:true,maxTicksLimit:12},grid:{color:'rgba(255,255,255,0.05)'}},
+  y:{position:'left',min:0,ticks:{font:{size:11},color:'#7EB8F7',callback:v=>v>=1000000?(v/1000000).toFixed(1)+'M':(v/1000).toFixed(0)+'K'},grid:{color:'rgba(255,255,255,0.06)'},title:{display:true,text:'Portfolio value ($)',color:'#7EB8F7',font:{size:11,weight:'600'}}},
+  yAge:{position:'right',min:minAge,max:maxAge,ticks:{font:{size:11},color:'#63C850',stepSize:5,callback:v=>v%5===0?v+' yrs':null},grid:{display:false},title:{display:true,text:'Age (years)',color:'#63C850',font:{size:11,weight:'600'}}}}}});
+  const ctx2=document.getElementById('returnsBar').getContext('2d');
+  if(returnsChart)returnsChart.destroy();
+  const accumCount=allReturnsUsed.filter(d=>!d.isWithdraw).length;
+  returnsChart=new Chart(ctx2,{type:'bar',data:{labels:allReturnsUsed.map(d=>d.yr),datasets:[{label:'S&P 500',data:allReturnsUsed.map(d=>+(d.r*100).toFixed(1)),backgroundColor:allReturnsUsed.map(d=>d.r>=0?(d.isWithdraw?'rgba(76,217,160,0.45)':'rgba(76,217,160,0.85)'):(d.isWithdraw?'rgba(255,123,123,0.45)':'rgba(255,123,123,0.9)')),borderWidth:0}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(32,17,62,0.95)',borderColor:'rgba(255,255,255,0.15)',borderWidth:1,titleColor:'#7EB8F7',bodyColor:'#fff',callbacks:{label:c=>' '+c.parsed.y.toFixed(1)+'%'+(c.dataIndex>=accumCount?' (withdrawal)':' (accumulation)')}}},
+  scales:{x:{ticks:{font:{size:10},color:'rgba(255,255,255,0.45)',autoSkip:true,maxTicksLimit:14},grid:{display:false}},y:{ticks:{font:{size:10},color:'rgba(255,255,255,0.45)',callback:v=>v+'%'},grid:{color:'rgba(255,255,255,0.05)'}}}}});
+}
+document.querySelectorAll('input').forEach(el=>el.addEventListener('input',compute));
+compute();
+</script>
